@@ -4,8 +4,8 @@ Never miss a relevant job opportunity again! This n8n workflow automates your jo
 
 This powerful workflow scrapes job postings from **LinkedIn** and **Naukri.com**, uses a Large Language Model (like Google's Gemini) to analyze and rate each job against your personal resume, and delivers a beautifully formatted email digest with only the best matches directly to your inbox.
 
-![Workflow Screenshot](placeholder.png)
-_**(Tip: Replace `placeholder.png` with a screenshot of your n8n workflow!)**_
+![Workflow Screenshot](workflow-screenshot.png)
+_**(Remember to replace this with a screenshot of your n8n workflow!)**_
 
 ---
 
@@ -55,7 +55,7 @@ To get this workflow running for yourself, follow these steps:
 *   An active **n8n** instance (Cloud or self-hosted).
 *   An **Apify** account and API token.
 *   A **Google Cloud Project** with the Gemini API enabled and an API Key.
-*   **Google OAuth2 Credentials** for the Gmail API.
+*   A **Google Account** to authorize Gmail access.
 
 **Configuration Steps:**
 
@@ -63,16 +63,16 @@ To get this workflow running for yourself, follow these steps:
 
 2.  **Configure Apify Scrapers (HTTP Request Nodes):**
     *   Open the **"HTTP Request NAUKRI"** and **"HTTP Request linkedin"** nodes.
-    *   In the URL, replace the placeholder Apify token (`apify_api_...`) with your own.
+    *   **Important:** In the URL, replace the placeholder Apify token (`apify_api_...`) with your own.
     *   In the Body, modify the JSON to change `keywords`, `location`, `experience`, etc., to match your job search criteria.
 
 3.  **Update Your Resume (AI Agent Nodes):**
     *   This is the most important step for personalization!
     *   Open the **"JOB MATCHING AI Agent linkedin"** and **"JOB MATCHING AI Agent naukri"** nodes.
     *   Go to the `Options` tab and find the `System Message` field.
-    *   Scroll down to find the hardcoded resume text for "Malay Bhayani". **Replace this entire resume with your own.** Try to maintain a similar structure for best results.
+    *   Scroll down to find the hardcoded resume text. **Replace this entire resume with your own.** (Remember to scrub personal info like phone/email if you re-share the workflow).
 
-4.  **Set Up AI Credentials:**
+4.  **Set Up AI Credentials (Google Gemini):**
     *   Open the **"Google Gemini Chat Model"** node.
     *   Under "Credential for Google (PaLM) API," select your pre-configured Google API credential or create a new one using your Gemini API key.
 
@@ -82,12 +82,51 @@ To get this workflow running for yourself, follow these steps:
 
 6.  **Configure Gmail Node:**
     *   Open the **"Send a message1"** node.
-    *   Under "Credential for Gmail API," configure your Google OAuth2 credentials.
     *   In the `Send To` field, enter your email address.
+    *   Under "Credential for Gmail API," you will need to create new OAuth2 credentials. This is the most complex step, so follow the guide below.
+
+    <details>
+    <summary><strong>➡️ Click here for a detailed guide on setting up Gmail OAuth2 Credentials.</strong></summary>
+
+    This process involves creating a project in the Google Cloud Console, enabling the Gmail API, and generating credentials that n8n can use securely.
+
+    #### **Step A: Create a Google Cloud Project**
+    1.  Go to the [Google Cloud Console](https://cloud.google.com/) and sign in.
+    2.  Click the project dropdown in the top-left corner and click **New Project**.
+    3.  Give it a name like `n8n-gmail-automation` and click **Create**.
+    4.  Ensure your new project is selected in the dropdown.
+
+    #### **Step B: Enable the Gmail API**
+    1.  Open the navigation menu (☰) and go to **APIs & Services > Enabled APIs & services**.
+    2.  Click **+ ENABLE APIS AND SERVICES**.
+    3.  Search for `Gmail API` and select it.
+    4.  Click **Enable**.
+
+    #### **Step C: Configure the OAuth Consent Screen**
+    1.  From the navigation menu, go to **APIs & Services > OAuth consent screen**.
+    2.  Choose **External** as the user type and click **Create**.
+    3.  Enter an **App name** (e.g., `n8n Gmail Notifier`), select your email for **User support email**, and enter your email for **Developer contact information**.
+    4.  Click **SAVE AND CONTINUE** through the next sections. You don't need to add scopes or test users here.
+    5.  Once done, go back to the dashboard and find the "Publishing status" section. Click **PUBLISH APP** and confirm. This prevents your connection from expiring every 7 days.
+
+    #### **Step D: Create and Add Credentials to n8n**
+    1.  In the Google Cloud Console, go to **APIs & Services > Credentials**.
+    2.  Click **+ CREATE CREDENTIALS** and select **OAuth client ID**.
+    3.  Set the **Application type** to **Web application**.
+    4.  Give it a name (e.g., `n8n Gmail Client`).
+    5.  Now, go back to your n8n workflow. In the **"Send a message1"** node, under the credentials dropdown, select **- Create New -**. In the popup window, you will see an **OAuth Redirect URL**. Click the copy icon next to it.
+    6.  Return to the Google Cloud Console. Under **Authorized redirect URIs**, click **+ ADD URI** and paste the URL from n8n.
+    7.  Click **Create**. A popup will appear with your **Client ID** and **Client Secret**.
+    8.  Copy the **Client ID** from Google and paste it into the **Client ID** field in n8n.
+    9.  Copy the **Client Secret** from Google and paste it into the **Client Secret** field in n8n.
+    10. Click **Sign in with Google**. Follow the prompts to authorize your account. You may need to bypass a "Google hasn't verified this app" warning, which is safe to do.
+    11. Once authenticated, give your credential a name (e.g., `My Gmail OAuth`) and click **Save**. You're all set!
+
+    </details>
 
 7.  **Activate and Automate:**
     *   Save the workflow.
-    *   Replace the **"When clicking ‘Execute workflow’"** node with a **Cron Node** to schedule it to run daily, weekly, or as often as you like!
+    *   To make it run automatically, replace the **"When clicking ‘Execute workflow’"** node with a **Cron Node**. Set the schedule (e.g., once a day at 8 AM) to receive your personalized job digest automatically!
 
 ---
 
